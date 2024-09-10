@@ -145,6 +145,20 @@ Awesome captions about the **kitties**.
 `,
 	}, t)
 
+	count++
+	testutil.DoTestCase(markdown, testutil.MarkdownTestCase{
+		No:          count,
+		Description: "Figure with a caption on the last line, but someone (me) forgot to add a newline.",
+		Markdown: `
+![Picture of Oscar.](/path/to/cat1.jpg)
+![Picture of Luna.](/path/to/cat2.jpg)
+Awesome captions about the **kitties**.`,
+		Expected: `<figure>
+<img src="/path/to/cat1.jpg" alt="Picture of Oscar.">
+<img src="/path/to/cat2.jpg" alt="Picture of Luna.">
+<figcaption><p>Awesome captions about the <strong>kitties</strong>.</p></figcaption>
+</figure>`,
+	}, t)
 }
 
 func TestFigureWithImageLink(t *testing.T) {

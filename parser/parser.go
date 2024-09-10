@@ -16,8 +16,7 @@ import (
 
 var imageRegexp = regexp.MustCompile(`^!\[[^[\]]*\](\([^()]*\)|\[[^[\]]*\])\s*$`)
 
-type figureParagraphTransformer struct {
-}
+type figureParagraphTransformer struct{}
 
 var defaultFigureParagraphTransformer = &figureParagraphTransformer{}
 
@@ -32,9 +31,9 @@ func (b *figureParagraphTransformer) Transform(node *gast.Paragraph, reader text
 	if lines.Len() < 1 {
 		return
 	}
-	var source = reader.Source()
-	var firstSeg = lines.At(0)
-	var firstLineStr = firstSeg.Value(source)
+	source := reader.Source()
+	firstSeg := lines.At(0)
+	firstLineStr := firstSeg.Value(source)
 	// Here we simply match by regex.
 	// But this simple regex ignores image descriptions that contain other links.
 	// E.g. ![foo ![bar](/url)](/url2).
@@ -49,10 +48,10 @@ func (b *figureParagraphTransformer) Transform(node *gast.Paragraph, reader text
 	figureImage.Lines().Append(lines.At(0))
 	figure.AppendChild(figure, figureImage)
 
-	var currentLine = 1
+	currentLine := 1
 	for currentLine < lines.Len() {
-		var currentSeg = lines.At(currentLine)
-		var currentLineStr = currentSeg.Value(source)
+		currentSeg := lines.At(currentLine)
+		currentLineStr := currentSeg.Value(source)
 		if imageRegexp.Match(currentLineStr) {
 			// Continued images.
 			figureImage := fast.NewFigureImage()
@@ -68,7 +67,7 @@ func (b *figureParagraphTransformer) Transform(node *gast.Paragraph, reader text
 		figureCaption := fast.NewFigureCaption()
 		for i := currentLine; i < lines.Len(); i++ {
 			seg := lines.At(i)
-			if i == lines.Len()-1 {
+			if i == lines.Len()-1 && source[seg.Stop-1] == '\n' {
 				// trim last newline(\n)
 				seg.Stop = seg.Stop - 1
 			}
@@ -78,8 +77,7 @@ func (b *figureParagraphTransformer) Transform(node *gast.Paragraph, reader text
 	}
 }
 
-type figureASTTransformer struct {
-}
+type figureASTTransformer struct{}
 
 var defaultFigureASTTransformer = &figureASTTransformer{}
 
