@@ -10,6 +10,7 @@ import (
 
 	gast "github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
+	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/util"
 )
 
@@ -22,7 +23,7 @@ type Figure struct {
 }
 
 // Kind implements Node.Kind.
-func (n *Figure) Kind() gast.NodeKind {
+func (*Figure) Kind() gast.NodeKind {
 	return KindFigure
 }
 
@@ -46,7 +47,7 @@ type FigureImage struct {
 }
 
 // Kind implements Node.Kind.
-func (n *FigureImage) Kind() gast.NodeKind {
+func (*FigureImage) Kind() gast.NodeKind {
 	return KindFigureImage
 }
 
@@ -70,7 +71,7 @@ type FigureCaption struct {
 }
 
 // Kind implements Node.Kind.
-func (n *FigureCaption) Kind() gast.NodeKind {
+func (*FigureCaption) Kind() gast.NodeKind {
 	return KindFigureCaption
 }
 
@@ -103,9 +104,13 @@ func (r *FigureHTMLRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegister
 	reg.Register(KindFigureCaption, r.renderFigureCaption)
 }
 
-func (r *FigureHTMLRenderer) renderFigure(w util.BufWriter, source []byte, n gast.Node, entering bool) (gast.WalkStatus, error) {
+func (*FigureHTMLRenderer) renderFigure(w util.BufWriter, source []byte, n gast.Node, entering bool) (gast.WalkStatus, error) {
 	if entering {
-		_, _ = w.WriteString("<figure>\n")
+		_, _ = w.WriteString("<figure")
+		if len(n.Attributes()) > 0 {
+			html.RenderAttributes(w, n, html.GlobalAttributeFilter)
+		}
+		_, _ = w.WriteString(">\n")
 	} else {
 		_, _ = w.WriteString("</figure>\n")
 	}
@@ -116,7 +121,7 @@ func (r *FigureHTMLRenderer) renderFigureImage(w util.BufWriter, source []byte, 
 	if r.renderImageLink {
 		if image, ok := n.FirstChild().(*gast.Image); ok {
 			if entering {
-				_, _ = w.WriteString(fmt.Sprintf("<a href=\"%s\">\n", string(image.Destination)))
+				_, _ = fmt.Fprintf(w, "<a href=\"%s\">\n", string(image.Destination))
 			} else {
 				_, _ = w.WriteString("</a>\n")
 			}
@@ -125,7 +130,7 @@ func (r *FigureHTMLRenderer) renderFigureImage(w util.BufWriter, source []byte, 
 	return gast.WalkContinue, nil
 }
 
-func (r *FigureHTMLRenderer) renderFigureCaption(w util.BufWriter, source []byte, n gast.Node, entering bool) (gast.WalkStatus, error) {
+func (*FigureHTMLRenderer) renderFigureCaption(w util.BufWriter, source []byte, n gast.Node, entering bool) (gast.WalkStatus, error) {
 	if entering {
 		_, _ = w.WriteString("<figcaption><p>")
 	} else {
